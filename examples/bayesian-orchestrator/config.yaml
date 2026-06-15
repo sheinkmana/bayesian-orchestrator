@@ -1,0 +1,14 @@
+mode: bayesian_llm_orchestrator
+seed: 11801
+output_dir: outputs/bayesian-orchestrator
+
+data:
+  log_count: 420
+  agent_prior: [0.48, 0.34, 0.18]
+
+mcmc:
+  warmup: 120
+  samples: 180
+
+diagnostics:
+  calibration_bins: 10

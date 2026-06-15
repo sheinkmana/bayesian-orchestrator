@@ -1,0 +1,48 @@
+mode: mmlu_bayesian_orchestrator
+seed: 24051
+output_dir: outputs/mmlu-smoke
+
+# Deterministic local provider: no API key, network call, or token charge.
+provider:
+  type: fake
+  reuse_cache: false
+  cache_file: call_matrix.jsonl
+
+models:
+  - label: fast
+    model_id: fake/fast
+    cost_weight: 0.02
+    dependence_group: fake_fast
+  - label: balanced
+    model_id: fake/balanced
+    cost_weight: 0.06
+    dependence_group: fake_balanced
+  - label: reasoning
+    model_id: fake/reasoning
+    cost_weight: 0.12
+    dependence_group: fake_reasoning
+
+dataset:
+  source: fake
+  subjects:
+    - math
+    - economics
+    - biology
+    - computer_science
+  sample_count: 60
+
+mcmc:
+  warmup: 60
+  samples: 90
+
+evaluation:
+  adaptive_strategy: adjudication
+  exploration_fraction: 0.5
+  cost_scale: 1.0
+  bootstrap_iterations: 200
+  max_calls: 2
+  min_expected_gain: 0.0
+  invalid_answer_triggers_call: true
+
+diagnostics:
+  calibration_bins: 8

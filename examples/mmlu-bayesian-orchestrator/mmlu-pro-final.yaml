@@ -1,0 +1,61 @@
+mode: mmlu_bayesian_orchestrator
+seed: 48219
+output_dir: outputs/benchmarks/mmlu-pro-4000-stratified-seed48219
+
+provider:
+  type: nebius
+  base_url: https://api.tokenfactory.nebius.com/v1/
+  api_key_env: NEBIUS_API_KEY
+  temperature: 0.0
+  max_tokens: 1024
+  json_mode: true
+  validate_models: true
+  model_validation_timeout: 30
+  request_max_attempts: 8
+  retry_initial_delay_seconds: 2
+  retry_max_delay_seconds: 60
+  reuse_cache: true
+  cache_file: call_matrix.jsonl
+
+pricing:
+  catalog: pricing/token-factory-2026-06-14.yaml
+  required: true
+
+models:
+  - label: small
+    model_id: nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B
+    cost_weight: 0.01
+    dependence_group: nvidia
+  - label: middle
+    model_id: Qwen/Qwen3-30B-A3B-Instruct-2507
+    cost_weight: 0.06
+    dependence_group: qwen
+  - label: strong
+    model_id: openai/gpt-oss-120b
+    cost_weight: 0.12
+    dependence_group: gpt_oss
+
+dataset:
+  source: hf
+  name: TIGER-Lab/MMLU-Pro
+  split: test
+  subjects: []
+  sampling: stratified
+  sample_count: 4000
+
+mcmc:
+  warmup: 500
+  samples: 1000
+
+evaluation:
+  adaptive_strategy: adjudication
+  exploration_fraction: 0.3
+  stratify_split: true
+  cost_scale: 200
+  bootstrap_iterations: 5000
+  max_calls: 2
+  min_expected_gain: 0.1
+  invalid_answer_triggers_call: true
+
+diagnostics:
+  calibration_bins: 10

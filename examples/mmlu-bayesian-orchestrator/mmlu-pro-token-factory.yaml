@@ -1,0 +1,62 @@
+mode: mmlu_bayesian_orchestrator
+seed: 24051
+output_dir: outputs/sweeps/cs200-gain01
+
+
+provider:
+  type: nebius
+  base_url: https://api.tokenfactory.nebius.com/v1/
+  api_key_env: NEBIUS_API_KEY
+  temperature: 0.0
+  max_tokens: 1024
+  json_mode: true
+  validate_models: true
+  model_validation_timeout: 30
+  reuse_cache: true
+  cache_file: ../../mmlu-pro-test-120-nemotron-qwen-gpt-oss/call_matrix.jsonl
+
+pricing:
+  catalog: pricing/token-factory-2026-06-14.yaml
+  required: true
+
+models:
+  - label: small
+    model_id: nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B
+    cost_weight: 0.01
+    dependence_group: nvidia
+  - label: middle
+    model_id: Qwen/Qwen3-30B-A3B-Instruct-2507
+    cost_weight: 0.06
+    dependence_group: qwen
+  - label: strong
+    model_id: openai/gpt-oss-120b
+    cost_weight: 0.12
+    dependence_group: gpt_oss
+
+dataset:
+  source: hf
+  name: TIGER-Lab/MMLU-Pro
+  split: test
+  # Leave subjects empty or omit it to sample all MMLU-Pro categories.
+  # Or filter with category names such as math, health, physics, business,
+  # biology, chemistry, computer science, economics, engineering, history,
+  # law, philosophy, psychology, or other.
+  subjects: []
+  sample_count: 120
+
+mcmc:
+  warmup: 120
+  samples: 180
+
+evaluation:
+  adaptive_strategy: adjudication
+  exploration_fraction: 0.5
+  cost_scale: 200
+  bootstrap_iterations: 500
+  max_calls: 2
+  min_expected_gain: 0.1
+  invalid_answer_triggers_call: true
+
+
+diagnostics:
+  calibration_bins: 10

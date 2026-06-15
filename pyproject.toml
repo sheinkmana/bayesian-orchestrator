@@ -1,0 +1,54 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "bayesian-orchestrator"
+version = "0.1.0"
+description = "Serverless Bayesian workflow for utility-aware LLM orchestration."
+readme = "README.md"
+requires-python = ">=3.10"
+license = { file = "LICENSE" }
+authors = [
+  { name = "Alisa Sheinkman", email = "alisasheik@gmail.com" },
+]
+keywords = [
+  "bayesian-inference",
+  "llm-routing",
+  "mmlu-pro",
+  "nebius",
+  "serverless-ai",
+]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "License :: OSI Approved :: MIT License",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
+dependencies = [
+  "arviz>=0.20",
+  "datasets>=2.19",
+  "jinja2>=3.1",
+  "langgraph>=0.2",
+  "matplotlib>=3.8",
+  "numpy>=1.26",
+  "numpyro>=0.15",
+  "openai>=1.40",
+  "pyyaml>=6.0",
+  "scikit-learn>=1.4",
+  "scipy>=1.12",
+]
+
+[project.scripts]
+bayesian-orchestrator = "bayesian_orchestrator.cli:main"
+
+[project.urls]
+Documentation = "https://github.com/sheinkmana/bayesian-orchestrator#readme"
+Issues = "https://github.com/sheinkmana/bayesian-orchestrator/issues"
+Source = "https://github.com/sheinkmana/bayesian-orchestrator"
+
+[tool.setuptools.packages.find]
+include = ["bayesian_orchestrator*"]

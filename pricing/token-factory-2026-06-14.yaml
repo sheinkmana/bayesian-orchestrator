@@ -1,0 +1,20 @@
+version: token-factory-2026-06-14
+as_of: 2026-06-14
+currency: USD
+unit: per_1m_tokens
+
+# Snapshot supplied from the Token Factory model pricing shown to the user.
+# Update this file or add a new dated catalog when provider prices change.
+models:
+  nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B:
+    input: 0.06
+    output: 0.24
+  Qwen/Qwen3-30B-A3B-Instruct-2507:
+    input: 0.10
+    output: 0.30
+  meta-llama/Llama-3.3-70B-Instruct:
+    input: 0.13
+    output: 0.40
+  openai/gpt-oss-120b:
+    input: 0.15
+    output: 0.60
