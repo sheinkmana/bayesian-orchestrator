@@ -10,12 +10,7 @@ Built for the **Nebius Serverless AI Builders Challenge** in the AI & ML categor
 ## Methodology
 
 The router estimates each model's posterior probability of answering correctly, conditioned on model identity, subject, question length, and observed call features. It then selects the action with the highest posterior expected utility:
-
-$$
-\mathbb{E}[u\mid D,q,m]
-=
-\Pr(y_{q,m}=1\mid D)-\lambda c_{q,m}.
-$$
+$$E[u\mid D,q,m]=P(y_{q,m}=1\mid D)-\lambda c_{q,m}.$$
 
 The adaptive policy can request a second model when its expected correction gain exceeds its token cost and a configurable minimum margin. When models disagree, their answers are adjudicated using posterior reliability. This is a cost-sensitive, myopic value-of-information policy, not full Bayesian experimental design.
 Relevant references, full model specification, policy equations, diagnostics, assumptions, and claim boundaries are documented in [`MATH_APPROACH.pdf`](MATH_APPROACH.pdf).
