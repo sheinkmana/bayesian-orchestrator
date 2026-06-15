@@ -17,6 +17,7 @@ htmlcov/
 dist/
 build/
 tmp/
+/MATH_APPROACH.tex
 *.aux
 *.fdb_latexmk
 *.fls
