@@ -35,9 +35,11 @@ flowchart LR
 
 The router estimates each model's posterior probability of answering correctly, conditioned on model identity, subject, question length, and observed call features. It then selects the action with the highest posterior expected utility:
 
-```text
-expected utility = posterior probability of correctness - cost_scale * expected call cost
-```
+$$
+\mathbb{E}[u\mid D,q,m]
+=
+\Pr(y_{q,m}=1\mid D)-\lambda c_{q,m}.
+$$
 
 The adaptive policy can request a second model when its expected correction gain exceeds its token cost and a configurable minimum margin. When models disagree, their answers are adjudicated using posterior reliability. This is a cost-sensitive, myopic value-of-information policy, not full Bayesian experimental design.
 
@@ -95,12 +97,15 @@ Do not modify the canonical config after publishing benchmark results. Create a 
 
 ### Runtime, Hardware, And Cost
 
-The final call matrix contains `4,000 questions * 3 models = 12,000` sequential API calls:
+The final call matrix contains $4{,}000\times3=12{,}000$ sequential API calls. Approximate runtime is:
 
-```text
-model collection time ~= sum of end-to-end latency for all missing calls
-total runtime ~= collection time + Bayesian fitting + bootstrap evaluation
-```
+$$
+T_{\mathrm{total}}
+\approx
+\sum_{i\in\mathrm{missing\ calls}}T_i
++T_{\mathrm{Bayesian\ fitting}}
++T_{\mathrm{bootstrap}}.
+$$
 
 At an illustrative average of 2-10 seconds per API call, initial collection takes roughly 7-33 hours. A resumed run only makes missing calls.
 
@@ -268,7 +273,7 @@ Raw outputs are ignored by Git. After reviewing the final artifacts:
 1. Create a versioned directory such as `results/mmlu-pro-4000-seed48219/`.
 2. Copy `report.md`, `summary.json`, and selected plots.
 3. Do not publish `call_matrix.jsonl` until question licensing, raw responses, and accidental sensitive content have been reviewed.
-4. Add measured job configuration, runtime, Token Factory cost, and Serverless AI compute cost to this README.
+4. Add measured job configuration, runtime, Token Factory cost, and Serverless AI compute cost to the project documentation.
 5. Link the technical article and optional video below.
 
 ## Reproducibility
