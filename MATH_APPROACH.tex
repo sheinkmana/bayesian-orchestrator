@@ -1,0 +1,382 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage{microtype}
+\usepackage{amsmath,amssymb,mathtools}
+\usepackage{xcolor}
+\usepackage[numbers,sort&compress]{natbib}
+\usepackage{hyperref}
+\usepackage{enumitem}
+\hypersetup{colorlinks=true,linkcolor=blue!50!black,urlcolor=blue!60!black}
+\setlist{nosep}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0.6em}
+\setlength{\emergencystretch}{3em}
+
+\title{The Bayesian Orchestrator}
+\author{Alisa Sheinkman}
+\date{\today}
+
+\begin{document}
+\maketitle
+% \tableofcontents
+
+This work proposes placing Bayesian inference in the orchestration layer of AI agents and systems. Such orchestrator estimates uncertainty of the model reliability from observed outcomes, then choose calls by expected utility.
+This follows the control-layer argument of Papamarkou et al.~\citep{papamarkou2026bayesconsistent} and avoids assuming that an LLM performs coherent internal Bayesian updating.
+
+% The main benchmark evaluates model routing on a complete question-by-model call matrix. 
+% A second synthetic workflow demonstrates the same decision principle when counterfactual success probabilities are known.
+
+
+% \newpage
+
+
+\section{Decision Problem}
+
+For question $q$ and candidate model $m$, let $y_{q,m}$ indicate correctness, $c_{q,m}$ denote call cost, and $\lambda$ denote the configured cost scale:
+
+\begin{equation*}
+y_{q,m}\in\{0,1\},
+\qquad
+c_{q,m}\ge 0,
+\qquad
+\lambda\ge 0.
+\end{equation*}
+
+The realized utility of a call is:
+
+\begin{equation*}
+u(y_{q,m},c_{q,m})=y_{q,m}-\lambda c_{q,m}.
+\end{equation*}
+
+Given data for exploration $D$, the posterior predictive probability and expected utility follow the standard Bayesian statistical decision-theory formulation~\citep{berger1985statistical}:
+
+\begin{equation*}
+p_{q,m}=\mathbb{P}(y_{q,m}=1\mid D), \quad
+\mathbb{E}[u\mid D,q,m]=p_{q,m}-\lambda c_{q,m}.
+\end{equation*}
+
+Then the single-shot policy chooses:
+
+\begin{equation*}
+\pi_{\mathrm{single}}(q)
+=
+\arg\max_m\left\{p_{q,m}-\lambda c_{q,m}\right\}.
+\end{equation*}
+
+\section{Exploration Data and Call Matrix}
+
+For every selected question and model, the workflow records the question, answer, confidence, latency, token counts, cost, parsing status, and correctness. 
+The resulting full call matrix is an evaluation baseline, it allows for exact offline policy comparison on the sampled questions.
+Questions are divided into exploration and evaluation sets, that is for $Q_{\mathrm{explore}}\cap Q_{\mathrm{test}}=\varnothing$, define
+\begin{equation*}
+D_{\mathrm{train}}
+=
+\{(q,m,\ldots,y_{q,m}):q\in Q_{\mathrm{explore}}\}, \quad
+D_{\mathrm{test}}
+=
+\{(q,m,\ldots,y_{q,m}):q\in Q_{\mathrm{test}}\},
+\end{equation*}
+
+During simulated policy execution a policy may inspect only outputs from calls it selected. Uncalled held-out responses remain hidden until scoring.
+
+% The final MMLU-Pro benchmark uses proportional stratified sampling. If category $k$ contains $N_k$ eligible questions and the requested sample size is $n$, its target allocation is:
+
+% \begin{equation*}
+% n_k\approx n\frac{N_k}{\sum_jN_j}.
+% \end{equation*}
+
+% Deterministic largest-remainder allocation converts these targets to integer counts that sum to $n$~\citep{gallagher1991proportionality}. The exploration/evaluation split is stratified again inside the selected sample.
+
+\section{Hierarchical Bayesian Reliability Model}
+
+Each row $i$ of a call matrix represents one question-model call. 
+Its pre-call features are model identity, subject, question-length bucket, and configured cost weight. 
+Post-call features additionally include parsed confidence, latency, token count, and observed token-price cost.
+Correctness follows a Bernoulli-logistic hierarchical model, with partial pooling and prior specification grounded in standard Bayesian modeling practice~\citep{gelman2013bayesian}:
+\begin{equation*}
+y_i\sim\operatorname{Bernoulli}(\sigma(\eta_i)),
+\qquad
+\sigma(x)=\frac{1}{1+\exp(-x)}.
+\end{equation*}
+The pre-call predictor contains only information available before a response is observed:
+
+\begin{equation*}
+\eta_i^{\mathrm{pre}}
+=
+\alpha
++a^{\mathrm{model}}_{m_i}
++a^{\mathrm{subject}}_{s_i}
++a^{\mathrm{length}}_{\ell_i}
++\beta_{\mathrm{cost}}w_i.
+\end{equation*}
+The post-call model adds observed response features:
+\begin{equation*}
+\begin{aligned}
+\eta_i^{\mathrm{post}}={}&
+\eta_i^{\mathrm{pre}}
++\beta_{\mathrm{latency}}\widetilde{t}_i
++\beta_{\mathrm{tokens}}\widetilde{n}_i \\
+&+\beta_{\mathrm{observed\ cost}}\widetilde{c}_i
++\beta_{\mathrm{confidence}}(r_i-0.5).
+\end{aligned}
+\end{equation*}
+
+Here, $r_i$ is parsed self-confidence, $\widetilde{t}_i$ is transformed latency, $\widetilde{n}_i$ is transformed token count, and $\widetilde{c}_i$ is observed token-price cost when available.
+
+The priors set for the MMLU-Pro evaluation are:
+\begin{equation*}
+\begin{aligned}
+\alpha &\sim\mathcal{N}(0,1.5^2), \\
+\sigma_{\mathrm{model}} &\sim\operatorname{HalfNormal}(1), \\
+\sigma_{\mathrm{subject}} &\sim\operatorname{HalfNormal}(1), \\
+a^{\mathrm{model}}_m &\sim\mathcal{N}(0,\sigma_{\mathrm{model}}^2), \\
+a^{\mathrm{subject}}_s &\sim\mathcal{N}(0,\sigma_{\mathrm{subject}}^2), \\
+a^{\mathrm{length}}_\ell &\sim\mathcal{N}(0,0.5^2), \\
+\beta_j &\sim\mathcal{N}(0,1).
+\end{aligned}
+\end{equation*}
+
+The posterior is sampled with HMC in NumPyro.
+For posterior draws $\theta^{(1)},\ldots,\theta^{(S)}$, the Monte Carlo approximation of predictive reliability is:
+\begin{equation*}
+\mathbb{P}(y_i=1\mid D)
+\approx
+\frac{1}{S}\sum_{s=1}^{S}
+\sigma\!\left(\eta_i(\theta^{(s)})\right).
+\end{equation*}
+
+Pre-call probabilities determine the first LLM that router decides to query. 
+
+Post-call probabilities, when high, support the orgestration stoping and returning the answer, or, when post-call probabilities are low, the orchestrator calculates if it is worth to call a second model and combine the answers. 
+
+
+\section{Adaptive Calls}
+
+The adaptive policy uses a myopic decision-value approximation inspired by the value-of-information framework~\citep{howard1966information} and adaptive information gathering~\citep{choudhury2026bedllm}. 
+The limitation of the approach is that it does not optimize the full expected information gain objective of sequential Bayesian experimental design.
+Let $C$ be the set of models that were already called and let the current best post-call reliability be:
+\begin{equation*}
+b=\max_{m\in C}p_{\mathrm{post}}(q,m).
+\end{equation*}
+For an uncalled model $m$, let $V_m$ be the empirical distribution of post-call reliability values observed in matching exploration groups. The estimated myopic gain is:
+\begin{equation*}
+\Delta(q,m)
+=
+\mathbb{E}_{v\sim V_m}[\max(b,v)]
+-b
+-\lambda\mathbb{E}[c_m].
+\end{equation*}
+
+The configuration in experiments uses the adjudication strategy or, in other words, Noisy-OR rule \cite{pearl1988probabilistic} applied in the case of LLM ensembling. 
+For an answer option $a$, the aggregation assumes that reliability signals are independant and supporting calls are combined using score defined as:
+\begin{equation*}
+1-\prod_{m\in C:\,\operatorname{answer}_m=a}
+\left(1-p_{\mathrm{post}}(q,m)\right).
+\end{equation*}
+Let $s_C$ denote the current adjudicated answer score and let a particular uncalled candidate $m$ have the pre-call correctness probability $p_{\mathrm{pre}}(q,m)$ .
+Using the formula for myopic gain and the Noisy-OR aggregation, the expected utility gain from calling $m$ is:
+\begin{equation*}
+\Delta_{\mathrm{adj}}(q,m)
+=
+(1-s_C)p_{\mathrm{pre}}(q,m)
+-\lambda c_m.
+\end{equation*}
+A second call is accepted when:
+\begin{equation*}
+\max_m\Delta_{\mathrm{adj}}(q,m)>\tau_{\mathrm{gain}},
+\end{equation*}
+where $\tau_{\mathrm{gain}}$ acts as a minimum threshold for expected utility gain.
+The above is subject to invalid first answer activates the explicit fallback rule and to the configured maximum number of calls. 
+
+\section{Offline Policy Values}
+For deterministic policy $\pi$, held-out empirical utility is:
+\begin{equation*}
+\widehat{V}(\pi)
+=
+\frac{1}{|Q_{\mathrm{test}}|}
+\sum_{q\in Q_{\mathrm{test}}}
+\left[y_{q,\pi(q)}-\lambda c_{q,\pi(q)}\right].
+\end{equation*}
+Uniform random routing has value:
+\begin{equation*}
+\widehat{V}_{\mathrm{random}}
+=
+\frac{1}{|Q_{\mathrm{test}}|}
+\sum_{q\in Q_{\mathrm{test}}}
+\frac{1}{M}
+\sum_{m=1}^{M}
+\left[y_{q,m}-\lambda c_{q,m}\right].
+\end{equation*}
+The fixed-model baseline for model $m$ is:
+\begin{equation*}
+\widehat{V}_{\mathrm{always}\,m}
+=
+\frac{1}{|Q_{\mathrm{test}}|}
+\sum_{q\in Q_{\mathrm{test}}}
+\left[y_{q,m}-\lambda c_{q,m}\right].
+\end{equation*}
+The adaptive policy pays for every call it makes:
+\begin{equation*}
+u_{\mathrm{adaptive}}(q)
+=
+\mathbf{1}\{\widehat{a}_q=a_q^*\}
+-\lambda\sum_{m\in C_q}c_{q,m}.
+\end{equation*}
+The oracle retrospectively selects the best observed model:
+\begin{equation*}
+\widehat{V}_{\mathrm{oracle}}
+=
+\frac{1}{|Q_{\mathrm{test}}|}
+\sum_{q\in Q_{\mathrm{test}}}
+\max_m\left[y_{q,m}-\lambda c_{q,m}\right], 
+\end{equation*}
+which, while not deployable, provides an upper bound for the sampled question-model matrix.
+Question-level bootstrap resampling estimates finite-sample uncertainty in policy differences such as:
+\begin{equation*}
+\widehat{V}(\pi_{\mathrm{adaptive}})
+-\widehat{V}(\pi_{\mathrm{random}}).
+\end{equation*}
+
+\section{MMLU-Pro Results}
+
+The MMLU-Pro run used seed 48219, a proportional stratified sample of 4,000 MMLU-Pro test questions, and three LLM models: NVIDIA's Nemotron-3-Nano (30B), Qwen3 (30B as well but with higher costs), gpt-oss (120B).
+An obvious limitation of this evaluation is that the sizes of the small and middle models are similar, such choice have been primarily driven by the avaliability of models. 
+% The final MMLU-Pro benchmark uses proportional stratified sampling. If category $k$ contains $N_k$ eligible questions and the requested sample size is $n$, its target allocation is:
+
+% \begin{equation*}
+% n_k\approx n\frac{N_k}{\sum_jN_j}.
+% \end{equation*}
+% Deterministic largest-remainder allocation converts these targets to integer counts that sum to $n$~\citep{gallagher1991proportionality}. The exploration/evaluation split is stratified again inside the selected sample.
+The reliability models were fit on 1,200 exploration questions and evaluated on 2,800 disjoint held-out questions. The call matrix contains all 12,000 question-model pairs. Prices use the Token Factory snapshot dated June 14, 2026.
+The calibrated configuration uses $\lambda=200$ and $\tau_{\mathrm{gain}}=0.1$. For example, a call costing $0.001$ receives a utility penalty of $0.2$.
+Note that $\lambda$ and $\tau_{\mathrm{gain}}$ are chosen empirically, so they should be comfirmed before evaluation on a fresh confirmation sample.
+
+Table~\ref{tab:final-results} reports policy accuracy, observed cost, and utility on the held-out set.
+\begin{table}[ht]
+\centering
+\small
+\begin{tabular}{lrrr}
+\hline
+Policy & Accuracy & USD / 1,000 & Utility \\
+\hline
+Random model & 0.605 & 0.1651 & 0.5725 \\
+Always small & 0.519 & 0.1727 & 0.4847 \\
+Always middle & 0.564 & 0.0313 & 0.5577 \\
+Always strong & 0.733 & 0.2912 & 0.6750 \\
+Bayesian single shot & 0.739 & 0.2788 & 0.6832 \\
+Adaptive Bayesian & \textbf{0.763} & 0.2950 & \textbf{0.7042} \\
+Retrospective oracle & 0.817 & 0.0871 & 0.7994 \\
+\hline
+\end{tabular}
+\caption{Held-out results for the final run. The oracle uses retrospective knowledge and is not deployable.}
+\label{tab:final-results}
+\end{table}
+
+The adaptive policy requested a second call for 33.4\% of questions and averaged 1.334 calls per question. Compared with single-shot Bayesian routing, adaptive routing improved accuracy by 2.4 percentage points and utility by 0.0210, while observed token cost increased by approximately 5.8\%. Compared with uniform random routing, the utility difference was 0.1318.
+Given this MMLU-PRO sample/split, model set, prompt, price snapshot, and utility scale, \textbf{Bayesian adaptive routing improved held-out performance}. 
+
+The workflow reports approximate leave-one-out expected log predictive density~\citep{vehtari2017practical}, Brier score~\citep{brier1950verification}, negative log-likelihood, expected calibration error~\citep{guo2017calibration}, and AUROC.
+Self-reported confidence is treated as a feature to validate rather than a trustworthy posterior, consistent with evidence that elicited LLM beliefs can be behaviorally incoherent~\citep{yamin2026elicited} and that LLM belief updates are not consistently Bayesian~\citep{chen2026notbayesian}. Function-calling uncertainty work further motivates auditing output validity and call-specific uncertainty signals~\citep{ye2026functioncalling}.
+Self-reported confidence improved correctness prediction as an input feature, but raw confidence was high across models and should not be interpreted as calibrated probability.
+
+The oracle's low apparent cost is an artifact of retrospective selection: it can choose the cheapest successful observed call after seeing all outcomes. It is an upper bound for this complete matrix, not a feasible routing strategy. 
+
+% The Brier score is:
+
+% \begin{equation*}
+% \operatorname{Brier}
+% =
+% \frac{1}{n}\sum_{i=1}^{n}(p_i-y_i)^2.
+% \end{equation*}
+
+% The mean negative log score is:
+
+% \begin{equation*}
+% \operatorname{LogScore}
+% =
+% -\frac{1}{n}\sum_{i=1}^{n}
+% \left[y_i\log p_i+(1-y_i)\log(1-p_i)\right].
+% \end{equation*}
+
+% Expected calibration error over bins $b$ is:
+
+% \begin{equation*}
+% \operatorname{ECE}
+% =
+% \sum_b\frac{n_b}{n}
+% \left|
+% \frac{1}{n_b}\sum_{i\in b}y_i
+% -\frac{1}{n_b}\sum_{i\in b}p_i
+% \right|.
+% \end{equation*}
+
+
+% \section{Reproducibility}
+% Each successful question-model pair is appended, flushed, and synced before the next call. The completed set is:
+% \begin{equation*}
+% P_{\mathrm{done}}
+% =
+% \{(q,m):(q,m)\text{ has a valid checkpoint row}\}.
+% \end{equation*}
+% A resumed job calls only pairs outside $P_{\mathrm{done}}$. Transient provider failures use capped exponential backoff:
+% \begin{equation*}
+% d_r=\min\left(d_0 2^{r-1},d_{\max}\right).
+% \end{equation*}
+% The final configuration permits up to eight attempts with $d_0=2$ seconds and $d_{\max}=60$ seconds.
+% Reproducibility additionally requires an immutable image, fixed configuration and seed, versioned pricing, and one writer per checkpoint.
+
+\section{Synthetic Router and a Toy Example}
+
+For synthetic task $t$ assigned to agent $a$:
+
+\begin{equation*}
+\operatorname{success}_t
+\sim
+\operatorname{Bernoulli}
+\left(
+\sigma\left(
+\alpha_a
++\beta_a^{\mathrm{difficulty}}\mathrm{difficulty}_t
++\beta_a^{\mathrm{ambiguity}}\mathrm{ambiguity}_t
+\right)
+\right).
+\end{equation*}
+
+The fitted priors are:
+
+\begin{equation*}
+\begin{aligned}
+\mu_{\mathrm{agent}} &\sim\mathcal{N}(0,1.5^2), \\
+\tau_{\mathrm{agent}} &\sim\operatorname{HalfNormal}(1), \\
+\alpha_a &\sim\mathcal{N}(\mu_{\mathrm{agent}},\tau_{\mathrm{agent}}^2), \\
+\beta_a^{\mathrm{difficulty}} &\sim\mathcal{N}(-2,1), \\
+\beta_a^{\mathrm{ambiguity}} &\sim\mathcal{N}(-0.75,0.75^2).
+\end{aligned}
+\end{equation*}
+
+For each held-out task, the selected agent is:
+
+\begin{equation*}
+\arg\max_a
+\left\{
+\mathbb{P}(\operatorname{success}=1\mid\operatorname{task},a,D)-c_a
+\right\}.
+\end{equation*}
+
+Because this workflow is simulated, true counterfactual expected utilities are available for every agent. Real routing logs require randomized exploration, logged propensities, controlled experiments, or valid off-policy estimators.
+
+\section{Limitations and Related Work}
+
+The implementation is a pragmatic Bayesian controller for model routing. 
+It does not claim that the underlying LLMs are Bayesian, that elicited confidence is intrinsically calibrated, or that the adaptive policy implements full Bayesian experimental design.
+Conclusions remain specific to the selected questions, model versions, prompts, prices, and run date. 
+
+BayesAgent provides a related example of combining agentic LLM workflows with probabilistic graphical models and numerical Bayesian inference~\citep{huang2026bayesagent}. Bayesian Teaching studies Bayesian updating as a normative and trainable target inside language models~\citep{qiu2025bayesianteaching}. 
+This project instead fits an external controller over observed model behavior motivated by \cite{papamarkou2026bayesconsistent}.
+
+\bibliographystyle{unsrtnat}
+\bibliography{references}
+
+\end{document}
