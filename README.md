@@ -2,15 +2,14 @@
 
 Cost-aware Bayesian model routing evaluated as a reproducible Nebius Serverless AI Job.
 
-This project asks a practical orchestration question: **when should an AI system use a cheap model, a stronger model, or pay for a second opinion?** It builds a complete model-question call matrix on MMLU-Pro through Nebius Token Factory, fits hierarchical Bayesian reliability models, and compares adaptive routing with random, fixed-model, single-shot Bayesian, and oracle policies.
+This project asks a practical orchestration question: **when should an AI system use a cheap model, a stronger model, or pay for a second opinion?**
+It builds a model-question call matrix on MMLU-Pro, fits hierarchical Bayesian reliability models, and compares adaptive routing with random, fixed-model, single-shot Bayesian, and oracle policies.
 
-Built for the **Nebius Serverless AI Builders Challenge** in the AI & ML category. Challenge tag: `#NebiusServerlessChallenge`
-
+Built for the **Nebius Serverless AI Builders Challenge** in the AI & ML category. Challenge tag: `#NebiusServerlessChallenge`.
 
 ## Methodology
 
-The router estimates each model's posterior probability of answering correctly, conditioned on model identity, subject, question length, and observed call features. It then selects the action with the highest posterior expected utility:
-$$E[u\mid D,q,m]=P(y_{q,m}=1\mid D)-\lambda c_{q,m}.$$
+The router estimates each model's posterior probability of answering correctly, conditioned on model identity, subject, question length, and observed call features. It then selects the action with the highest posterior expected utility: $E[u\mid D,q,m]=P(y_{q,m}=1\mid D)-\lambda c_{q,m}.$
 
 The adaptive policy can request a second model when its expected correction gain exceeds its token cost and a configurable minimum margin. When models disagree, their answers are adjudicated using posterior reliability. This is a cost-sensitive, myopic value-of-information policy, not full Bayesian experimental design.
 Relevant references, full model specification, policy equations, diagnostics, assumptions, and claim boundaries are documented in [`MATH_APPROACH.pdf`](MATH_APPROACH.pdf).
@@ -74,14 +73,34 @@ It uses:
 - 4,000 stratified questions
 - Three Token Factory models
 - A 30% exploration / 70% held-out split, stratified by category
-- 500 NUTS warmup steps and 1,000 posterior samples
-- 5,000 bootstrap iterations
+- 500 HMC NUTS warmup steps and 1,000 posterior samples
 - At most two calls per deployed adaptive decision
 
 The config validates selected model IDs and dated pricing entries before making missing calls. Every completed question-model pair is checkpointed. For a less expensive trial, copy the final config and reduce `dataset.sample_count`, `mcmc.warmup`, `mcmc.samples`, and `evaluation.bootstrap_iterations`.
 
+### Final benchmark results
 
-Model inference happens in Token Factory, so a GPU is not required. Use a regular CPU Serverless AI preset with at least 8 vCPUs and 32 GiB RAM as a conservative starting point for JAX/NumPyro fitting. The generated `summary.json` records actual token counts and model-call costs. This excludes Serverless AI compute and storage costs. 
+The completed run is available at [`mmlu-pro-4000-stratified-seed48219/`](mmlu-pro-4000-stratified-seed48219/). It contains 12,000 calls: three models for each of 4,000 stratified MMLU-Pro questions. The Bayesian models were fit on 1,200 exploration questions and policies were evaluated on 2,800 held-out questions.
+
+| Policy | Held-out accuracy | Observed cost per 1,000 questions | Utility |
+|---|---:|---:|---:|
+| Random model | 60.5% | $0.1651 | 0.5725 |
+| Always small | 51.9% | $0.1727 | 0.4847 |
+| Always middle | 56.4% | $0.0313 | 0.5577 |
+| Always strong | 73.3% | $0.2912 | 0.6750 |
+| Bayesian single shot | 73.9% | $0.2788 | 0.6832 |
+| Adaptive Bayesian | **76.3%** | $0.2950 | **0.7042** |
+| Retrospective oracle | 81.7% | $0.0871 | 0.7994 |
+
+Utility is `accuracy - 200 x observed USD cost per question`. It is therefore specific to the configured cost scale, not a universal score. The oracle uses knowledge of all observed answers after the fact and is only an upper bound; its apparently low cost is not achievable by a deployed router.
+
+For this one seed, MMLU-Pro sample, one prompt/configuration, three model versions, and one pricing snapshot dated June 14, 2026, findings support the claim that Bayesian adaptive policy improves accuracy. 
+
+ The complete call matrix supports exact offline comparison for these 2,800 questions, but it does not establish production lift, a stronger claim requires repeated seeds or splits, refit-aware uncertainty, and randomized or propensity-logged production data (work to be continued...).
+
+![Final MMLU accuracy and cost comparison](mmlu-pro-4000-stratified-seed48219/mmlu_accuracy_cost.png)
+
+Model inference happens in Token Factory, so a GPU is not required. I used a regular CPU Serverless AI preset with 8 vCPUs and 32 GiB RAM (main consumption is for JAX/NumPyro fitting). The generated `summary.json` records actual token counts and model-call costs. This excludes Serverless AI compute and storage costs.
 
 ## Nebius Serverless Job
 
@@ -152,10 +171,10 @@ To resume, create a replacement job with the same config and the same shared fil
 
 ## Result Validation
 
-For [`examples/mmlu-bayesian-orchestrator/mmlu-pro-final.yaml`](examples/mmlu-bayesian-orchestrator/mmlu-pro-final.yaml) and above command the output would be in:
+For [`examples/mmlu-bayesian-orchestrator/mmlu-pro-final.yaml`](examples/mmlu-bayesian-orchestrator/mmlu-pro-final.yaml), the completed output is available in:
 
 ```text
-outputs/benchmarks/mmlu-pro-4000-stratified-seed48219/
+mmlu-pro-4000-stratified-seed48219/
 ```
 
 Expected files:
@@ -163,11 +182,10 @@ Expected files:
 - `call_matrix.jsonl`: append-only model-call checkpoint
 - `report.md`: human-readable results and reproducibility metadata
 - `summary.json`: machine-readable metrics, token usage, and costs
-- `mmlu_reliability.png`: predictive calibration
-- `mmlu_policy_utility.png`: policy utility comparison
+- `mmlu_accuracy_cost.png`: held-out accuracy and observed token-cost comparison
 
 
-The final matrix should contain 12,000 unique rows. 
+The final matrix contains 12,000 unique rows.
 
 Policies evaluated on held-out questions are:
 
