@@ -245,4 +245,4 @@ Released under the [MIT License](LICENSE).
 
 Official references: [Serverless AI overview](https://docs.nebius.com/serverless/overview), [managing Serverless AI jobs](https://docs.nebius.com/serverless/jobs/manage), and [Token Factory API](https://docs.tokenfactory.nebius.com/api-reference/introduction).
 
-Math references:  [`MATH_APPROACH.pdf`](MATH_APPROACH.pdf)
+Math references are in:  [`MATH_APPROACH.pdf`](MATH_APPROACH.pdf)
