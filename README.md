@@ -51,7 +51,7 @@ The workload is a finite, restartable batch evaluation rather than an interactiv
 
 Nebius Serverless AI provides disposable compute for the evaluation job, while Nebius Token Factory provides the OpenAI-compatible model API. A shared filesystem preserves checkpoints and results when a job exits or restarts.
 
-## Live Benchmark
+## MMLU-PRO Benchmark
 
 The canonical challenge configuration is [`examples/mmlu-bayesian-orchestrator/mmlu-pro-final.yaml`](examples/mmlu-bayesian-orchestrator/mmlu-pro-final.yaml). 
 Architecture is
