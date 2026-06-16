@@ -1,0 +1,128 @@
+\begin{thebibliography}{15}
+\providecommand{\natexlab}[1]{#1}
+\providecommand{\url}[1]{\texttt{#1}}
+\expandafter\ifx\csname urlstyle\endcsname\relax
+  \providecommand{\doi}[1]{doi: #1}\else
+  \providecommand{\doi}{doi: \begingroup \urlstyle{rm}\Url}\fi
+
+\bibitem[Papamarkou et~al.(2026)]{papamarkou2026bayesconsistent}
+Theodore Papamarkou et~al.
+\newblock Position: Agentic {AI} orchestration should be bayes-consistent,
+  2026.
+\newblock URL \url{https://doi.org/10.48550/arXiv.2605.00742}.
+\newblock Proceedings of the 43rd International Conference on Machine Learning
+  (ICML).
+
+\bibitem[Berger(1985)]{berger1985statistical}
+James~O. Berger.
+\newblock \emph{Statistical Decision Theory and Bayesian Analysis}.
+\newblock Springer, 1985.
+
+\bibitem[Gelman et~al.(2013)Gelman, Carlin, Stern, Dunson, Vehtari, and
+  Rubin]{gelman2013bayesian}
+Andrew Gelman, John~B. Carlin, Hal~S. Stern, David~B. Dunson, Aki Vehtari, and
+  Donald~B. Rubin.
+\newblock \emph{Bayesian Data Analysis}.
+\newblock CRC Press, 3 edition, 2013.
+
+\bibitem[Howard(1966)]{howard1966information}
+Ronald~A. Howard.
+\newblock Information value theory.
+\newblock \emph{IEEE Transactions on Systems Science and Cybernetics},
+  2\penalty0 (1):\penalty0 22--26, 1966.
+
+\bibitem[Choudhury et~al.(2026)Choudhury, Williamson, Goli{\'n}ski, Miao,
+  Bickford~Smith, Kirchhof, Zhang, and Rainforth]{choudhury2026bedllm}
+Deepro Choudhury, Sinead Williamson, Adam Goli{\'n}ski, Ning Miao, Freddie
+  Bickford~Smith, Michael Kirchhof, Yizhe Zhang, and Tom Rainforth.
+\newblock {BED-LLM}: Intelligent information gathering with {LLM}s and bayesian
+  experimental design.
+\newblock In \emph{International Conference on Learning Representations
+  (ICLR)}, 2026.
+\newblock \doi{10.48550/arXiv.2508.21184}.
+\newblock URL \url{https://doi.org/10.48550/arXiv.2508.21184}.
+
+\bibitem[Pearl(1988)]{pearl1988probabilistic}
+J.~Pearl.
+\newblock \emph{Probabilistic Reasoning in Intelligent Systems: Networks of
+  Plausible Inference}.
+\newblock Morgan Kaufmann series in representation and reasoning. Elsevier
+  Science, 1988.
+
+\bibitem[Wang et~al.(2024)Wang, Ma, Zhang, Ni, Chandra, Guo, Ren, Arulraj, He,
+  Jiang, Li, Ku, Wang, Zhuang, Fan, Yue, and Chen]{wang2024mmlupro}
+Yubo Wang, Xueguang Ma, Ge~Zhang, Yuansheng Ni, Abhranil Chandra, Shiguang Guo,
+  Weiming Ren, Aaran Arulraj, Xuan He, Ziyan Jiang, Tianle Li, Max Ku, Kai
+  Wang, Alex Zhuang, Rongqi Fan, Xiang Yue, and Wenhu Chen.
+\newblock {MMLU-Pro}: A more robust and challenging multi-task language
+  understanding benchmark.
+\newblock In \emph{Advances in Neural Information Processing Systems, Datasets
+  and Benchmarks Track}, 2024.
+\newblock \doi{10.48550/arXiv.2406.01574}.
+\newblock URL \url{https://arxiv.org/abs/2406.01574}.
+\newblock Spotlight. arXiv:2406.01574.
+
+\bibitem[Vehtari et~al.(2017)Vehtari, Gelman, and Gabry]{vehtari2017practical}
+Aki Vehtari, Andrew Gelman, and Jonah Gabry.
+\newblock Practical bayesian model evaluation using leave-one-out
+  cross-validation and {WAIC}.
+\newblock \emph{Statistics and Computing}, 27\penalty0 (5):\penalty0
+  1413--1432, 2017.
+
+\bibitem[Brier(1950)]{brier1950verification}
+Glenn~W. Brier.
+\newblock Verification of forecasts expressed in terms of probability.
+\newblock \emph{Monthly Weather Review}, 78\penalty0 (1):\penalty0 1--3, 1950.
+
+\bibitem[Guo et~al.(2017)Guo, Pleiss, Sun, and Weinberger]{guo2017calibration}
+Chuan Guo, Geoff Pleiss, Yu~Sun, and Kilian~Q. Weinberger.
+\newblock On calibration of modern neural networks.
+\newblock In \emph{Proceedings of the 34th International Conference on Machine
+  Learning (ICML)}, 2017.
+
+\bibitem[Yamin et~al.(2026)Yamin, Tang, Cortes-Gomez, Sharma, Horvitz, and
+  Wilder]{yamin2026elicited}
+Khurram Yamin, Jingjing Tang, Santiago Cortes-Gomez, Amit Sharma, Eric Horvitz,
+  and Bryan Wilder.
+\newblock When agents say one thing and do another: Validating elicited beliefs
+  from {LLM}s, 2026.
+\newblock URL \url{https://doi.org/10.48550/arXiv.2602.06286}.
+\newblock arXiv preprint.
+
+\bibitem[Chen et~al.(2026)Chen, J{\"o}rke, Goli{\'n}ski, Fedzechkina, Sapiro,
+  Williamson, and Foti]{chen2026notbayesian}
+Chacha Chen, Matthew J{\"o}rke, Adam Goli{\'n}ski, Masha Fedzechkina, Guillermo
+  Sapiro, Sinead Williamson, and Nicholas Foti.
+\newblock {LLM}s are not (consistently) bayesian: Quantifying internal
+  (in)consistencies of {LLM}s' probabilistic beliefs, 2026.
+\newblock URL \url{https://doi.org/10.48550/arXiv.2605.06915}.
+\newblock arXiv preprint.
+
+\bibitem[Ye et~al.(2026)Ye, Aichberger, Kirchhof, Williamson, Zappella, Gal,
+  Blaas, and Goli{\'n}ski]{ye2026functioncalling}
+Zihuiwen Ye, Lukas Aichberger, Michael Kirchhof, Sinead Williamson, Luca
+  Zappella, Yarin Gal, Arno Blaas, and Adam Goli{\'n}ski.
+\newblock Uncertainty quantification for {LLM} function-calling, 2026.
+\newblock URL \url{https://doi.org/10.48550/arXiv.2604.22985}.
+\newblock arXiv preprint.
+
+\bibitem[Huang et~al.(2026)Huang, Shen, Wang, Meng, Liu, Duchene, Wang, and
+  Bhatt]{huang2026bayesagent}
+Hengguan Huang, Xing Shen, Songtao Wang, Lingfa Meng, Dianbo Liu,
+  David~Alejandro Duchene, Hao Wang, and Samir Bhatt.
+\newblock {BayesAgent}: Bayesian agentic reasoning under uncertainty via
+  verbalized probabilistic graphical modeling.
+\newblock In \emph{AAAI Conference on Artificial Intelligence}, 2026.
+\newblock \doi{10.48550/arXiv.2406.05516}.
+\newblock URL \url{https://doi.org/10.48550/arXiv.2406.05516}.
+
+\bibitem[Qiu et~al.(2025)Qiu, Sha, Allen, Kim, Linzen, and van
+  Steenkiste]{qiu2025bayesianteaching}
+Linlu Qiu, Fei Sha, Kelsey Allen, Yoon Kim, Tal Linzen, and Sjoerd van
+  Steenkiste.
+\newblock Bayesian teaching enables probabilistic reasoning in large language
+  models, 2025.
+\newblock URL \url{https://doi.org/10.48550/arXiv.2503.17523}.
+\newblock arXiv preprint.
+
+\end{thebibliography}
