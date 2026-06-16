@@ -69,7 +69,7 @@ flowchart LR
 
 It uses:
 
-- MMLU-Pro test split
+- MMLU-Pro test split ([TIGER-Lab MMLU-Pro Space](https://huggingface.co/spaces/TIGER-Lab/MMLU-Pro))
 - 4,000 stratified questions
 - Three Token Factory models
 - A 30% exploration / 70% held-out split, stratified by category
