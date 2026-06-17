@@ -1,6 +1,6 @@
 # Bayesian Orchestrator
 
-Cost-aware Bayesian model routing evaluated as a reproducible Nebius Serverless AI Job.
+Bayesian model routing evaluated as a reproducible Nebius Serverless AI Job.
 
 This project asks a practical orchestration question: **when should an AI system use a cheap model, a stronger model, or pay for a second opinion?**
 It builds a model-question call matrix on MMLU-Pro, fits hierarchical Bayesian reliability models, and compares adaptive routing with random, fixed-model, single-shot Bayesian, and oracle policies.
